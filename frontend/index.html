@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>RadiaScan IA</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="topo">
+
+        <h1>🩻 RadiaScan IA</h1>
+
+        <p>
+            Sistema Inteligente de Radiologia
+        </p>
+
+    </div>
+
+    <div class="painel">
+
+        <label>
+
+            Tipo de Radiologia
+
+        </label>
+
+        <select id="modo">
+
+            <option>Humano</option>
+
+            <option>Veterinário</option>
+
+        </select>
+
+        <input
+            type="file"
+            id="arquivo"
+            onchange="previewImagem(event)"
+        >
+
+        <img
+            id="preview"
+        >
+
+        <button onclick="enviarImagem()">
+
+            🔍 Analisar Exame
+
+        </button>
+
+        <div id="loading">
+
+            ⏳ IA analisando imagem...
+
+        </div>
+
+        <div id="resultado"></div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+```css id="4x.compose"
+body{
+
+  margin:0;
+
+  background:#0f172a;
+
+  font-family:Arial;
+
+}
+
+.container{
+
+  width:100%;
+
+  height:100vh;
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+}
+
+.painel{
+
+  width:450px;
+
+  background:#1e293b;
+
+  padding:30px;
+
+  border-radius:20px;
+
+  color:white;
+
+  text-align:center;
+
+  box-shadow:0 0 30px rgba(0,0,0,0.5);
+
+}
+
+h1{
+
+  color:#38bdf8;
+
+}
+
+input{
+
+  width:100%;
+
+  margin-top:20px;
+
+}
+
+button{
+
+  width:100%;
+
+  margin-top:20px;
+
+  padding:15px;
+
+  border:none;
+
+  border-radius:10px;
+
+  background:#38bdf8;
+
+  font-size:16px;
+
+  font-weight:bold;
+
+  cursor:pointer;
+
+}
+
+.preview{
+
+  width:100%;
+
+  margin-top:20px;
+
+  border-radius:15px;
+
+}
+
+.resultado{
+
+  margin-top:25px;
+
+  font-size:20px;
+
+  font-weight:bold;
+
+}
+
+.loading{
+
+  margin-top:20px;
+
+  color:yellow;
+
+}
