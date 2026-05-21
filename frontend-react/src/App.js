@@ -28,7 +28,7 @@ function App(){
     try{
 
       const resposta = await fetch(
-        "http://127.0.0.1:8000/analisar",
+        https://name-radiascania-api.onrender.com/analisar,
         {
           method:"POST",
           body:formData
