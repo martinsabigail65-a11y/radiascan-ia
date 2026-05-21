@@ -28,7 +28,7 @@ function App(){
     try{
 
       const resposta = await fetch(
-        https://name-radiascania-api.onrender.com/analisar,
+        "https://name-radiascania-api.onrender.com/analisar",
         {
           method:"POST",
           body:formData
