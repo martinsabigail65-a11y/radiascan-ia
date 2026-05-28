@@ -1,5 +1,5 @@
 import "./App.css"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 function App(){
 
@@ -8,6 +8,18 @@ function App(){
   const [resultado, setResultado] = useState(null)
   const [loading, setLoading] = useState(false)
   const [modo, setModo] = useState("Humano")
+  const [paciente, setPaciente] = useState("")
+  const [registro, setRegistro] = useState("")
+  const [tipoExame, setTipoExame] = useState("Radiografia")
+  const [dataExame, setDataExame] = useState("")
+  const [historico, setHistorico] = useState([])
+
+  useEffect(() => {
+    const salvo = localStorage.getItem("historicoRadiaScan")
+    if(salvo){
+      setHistorico(JSON.parse(salvo))
+    }
+  }, [])
 
   async function enviarImagem(){
 
@@ -31,15 +43,39 @@ function App(){
       )
 
       const dados = await resposta.json()
+      const metricas = dados.metricas || {}
 
-      setResultado({
-        status: dados.status || "APROVADO",
-        problema: dados.problema || "Nenhum problema crítico encontrado",
-        nitidez: dados.nitidez || 92,
-        contraste: dados.contraste || 88,
-        exposicao: dados.exposicao || 90,
-        enquadramento: dados.enquadramento || 85
-      })
+      const resultadoFinal = {
+        status: dados.status || "ERRO",
+        problema: dados.problema || "Sem descrição",
+        nitidez: metricas.nitidez || 0,
+        contraste: metricas.contraste || 0,
+        exposicao: metricas.exposicao || 0,
+        enquadramento: metricas.enquadramento || 0,
+        upload: dados.upload || null
+      }
+
+      setResultado(resultadoFinal)
+
+      const novoRegistro = {
+        nome: imagem.name,
+        paciente: paciente || "Não informado",
+        registro: registro || "Não informado",
+        tipoExame: tipoExame,
+        modo: modo,
+        status: resultadoFinal.status,
+        problema: resultadoFinal.problema,
+        data: new Date().toLocaleString()
+      }
+
+      const novoHistorico = [novoRegistro, ...historico]
+
+      setHistorico(novoHistorico)
+
+      localStorage.setItem(
+        "historicoRadiaScan",
+        JSON.stringify(novoHistorico)
+      )
 
     }catch(erro){
       setResultado({
@@ -64,7 +100,7 @@ function App(){
         </div>
 
         <div className="barra-fundo">
-          <div 
+          <div
             className="barra-preenchida"
             style={{width:`${valor}%`}}
           ></div>
@@ -94,6 +130,40 @@ function App(){
           <select value={modo} onChange={(e)=>setModo(e.target.value)}>
             <option>Humano</option>
             <option>Veterinário</option>
+          </select>
+
+          <label>Nome do Paciente</label>
+          <input
+            type="text"
+            placeholder="Ex: Maria Silva"
+            value={paciente}
+            onChange={(e)=>setPaciente(e.target.value)}
+          />
+
+          <label>Registro / ID do Paciente</label>
+          <input
+            type="text"
+            placeholder="Ex: 000123"
+            value={registro}
+            onChange={(e)=>setRegistro(e.target.value)}
+          />
+
+          <label>Data do Exame</label>
+          <input
+            type="date"
+            value={dataExame}
+            onChange={(e)=>setDataExame(e.target.value)}
+          />
+
+          <label>Tipo de Exame</label>
+          <select
+            value={tipoExame}
+            onChange={(e)=>setTipoExame(e.target.value)}
+          >
+            <option>Radiografia</option>
+            <option>Tomografia</option>
+            <option>Ressonância</option>
+            <option>Ultrassonografia</option>
           </select>
 
           <input
@@ -133,8 +203,8 @@ function App(){
           {resultado && (
             <>
               <div className={
-                resultado.status === "APROVADO" 
-                ? "status aprovado" 
+                resultado.status === "APROVADO"
+                ? "status aprovado"
                 : "status reprovado"
               }>
                 {resultado.status}
@@ -159,18 +229,18 @@ function App(){
 
           <div className="painel-grid">
             <div>
-              <strong>1</strong>
+              <strong>{historico.length}</strong>
               <span>Exames analisados</span>
             </div>
 
             <div>
-              <strong>{resultado?.status === "APROVADO" ? 1 : 0}</strong>
+              <strong>{historico.filter(item => item.status === "APROVADO").length}</strong>
               <span>Aprovados</span>
             </div>
 
             <div>
-              <strong>{resultado?.status === "REPROVADO" ? 1 : 0}</strong>
-              <span>Reprovados</span>
+              <strong>{historico.filter(item => item.status !== "APROVADO").length}</strong>
+              <span>Reprovados/Atenção</span>
             </div>
           </div>
         </section>
@@ -179,11 +249,15 @@ function App(){
           <h2>Relatório Automático</h2>
 
           {resultado ? (
-            <p>
-              O exame foi analisado no modo <strong>{modo}</strong>. 
-              Resultado: <strong>{resultado.status}</strong>. 
-              Observação técnica: {resultado.problema}.
-            </p>
+            <div className="relatorio-texto">
+              <p><strong>Paciente:</strong> {paciente || "Não informado"}</p>
+              <p><strong>Registro:</strong> {registro || "Não informado"}</p>
+              <p><strong>Data do exame:</strong> {dataExame || "Não informada"}</p>
+              <p><strong>Tipo de exame:</strong> {tipoExame}</p>
+              <p><strong>Modo:</strong> {modo}</p>
+              <p><strong>Resultado da IA:</strong> {resultado.status}</p>
+              <p><strong>Observação técnica:</strong> {resultado.problema}</p>
+            </div>
           ) : (
             <p className="vazio">
               O relatório será gerado após a análise da imagem.
@@ -191,8 +265,50 @@ function App(){
           )}
         </section>
 
-      </main>
+        <section className="card relatorio-card">
+          <h2>PEP / Prontuário Eletrônico</h2>
 
+          <div className="pep-box">
+            <p><strong>Paciente:</strong> {paciente || "Aguardando cadastro"}</p>
+            <p><strong>Registro:</strong> {registro || "Aguardando registro"}</p>
+            <p><strong>Exame:</strong> {tipoExame}</p>
+            <p><strong>Data:</strong> {dataExame || "Não informada"}</p>
+            <p><strong>Status IA:</strong> {resultado ? resultado.status : "Aguardando análise"}</p>
+            <p><strong>Observação:</strong> {resultado ? resultado.problema : "Sem observação"}</p>
+          </div>
+        </section>
+
+        <section className="card relatorio-card">
+          <h2>Uploads Salvos</h2>
+
+          {historico.length === 0 ? (
+            <p className="vazio">Nenhum upload registrado ainda.</p>
+          ) : (
+            <ul className="lista-uploads">
+              {historico.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.nome}</strong>
+                  <br />
+                  Paciente: {item.paciente}
+                  <br />
+                  Registro: {item.registro}
+                  <br />
+                  Exame: {item.tipoExame}
+                  <br />
+                  Modo: {item.modo}
+                  <br />
+                  Status: {item.status}
+                  <br />
+                  Observação: {item.problema}
+                  <br />
+                  Data: {item.data}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+      </main>
     </div>
   )
 }

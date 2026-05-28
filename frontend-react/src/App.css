@@ -210,3 +210,26 @@ button:hover{
     gap:15px;
   }
 }
+.pep-box{
+  background:#0a1322;
+  padding:18px;
+  border-radius:14px;
+  border:1px solid #263a55;
+}
+
+.pep-box p{
+  margin:10px 0;
+  color:#d7e3f0;
+}
+
+.relatorio-texto{
+  background:#0a1322;
+  padding:18px;
+  border-radius:14px;
+  border:1px solid #263a55;
+}
+
+.relatorio-texto p{
+  margin:10px 0;
+  color:#d7e3f0;
+}
