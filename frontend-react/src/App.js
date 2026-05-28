@@ -13,11 +13,21 @@ function App(){
   const [tipoExame, setTipoExame] = useState("Radiografia")
   const [dataExame, setDataExame] = useState("")
   const [historico, setHistorico] = useState([])
+  const [email, setEmail] = useState("")
+  const [logado, setLogado] = useState(false)
 
   useEffect(() => {
-    const salvo = localStorage.getItem("historicoRadiaScan")
-    if(salvo){
-      setHistorico(JSON.parse(salvo))
+    const emailSalvo = localStorage.getItem("emailRadiaScan")
+
+    if(emailSalvo){
+      setEmail(emailSalvo)
+      setLogado(true)
+
+      const historicoSalvo = localStorage.getItem(`historicoRadiaScan_${emailSalvo}`)
+
+      if(historicoSalvo){
+        setHistorico(JSON.parse(historicoSalvo))
+      }
     }
   }, [])
 
@@ -58,6 +68,7 @@ function App(){
       setResultado(resultadoFinal)
 
       const novoRegistro = {
+        email: email,
         nome: imagem.name,
         paciente: paciente || "Não informado",
         registro: registro || "Não informado",
@@ -73,7 +84,7 @@ function App(){
       setHistorico(novoHistorico)
 
       localStorage.setItem(
-        "historicoRadiaScan",
+        `historicoRadiaScan_${email}`,
         JSON.stringify(novoHistorico)
       )
 
@@ -109,6 +120,46 @@ function App(){
     )
   }
 
+  if(!logado){
+    return(
+      <div className="container">
+        <div className="card login-card">
+          <h1>🩻 RadiaScan IA</h1>
+          <p>Entre com seu e-mail para salvar seus exames.</p>
+
+          <input
+            type="email"
+            placeholder="Digite seu e-mail"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+          />
+
+          <button
+            onClick={()=>{
+              if(!email){
+                alert("Digite um e-mail")
+                return
+              }
+
+              localStorage.setItem("emailRadiaScan", email)
+              setLogado(true)
+
+              const historicoSalvo = localStorage.getItem(`historicoRadiaScan_${email}`)
+
+              if(historicoSalvo){
+                setHistorico(JSON.parse(historicoSalvo))
+              }else{
+                setHistorico([])
+              }
+            }}
+          >
+            Entrar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return(
     <div className="container">
 
@@ -116,9 +167,25 @@ function App(){
         <div>
           <h1>🩻 RadiaScan IA</h1>
           <p>Análise inteligente de qualidade radiológica</p>
+          <p>Usuário: <strong>{email}</strong></p>
         </div>
 
-        <span className="online">● ONLINE</span>
+        <div>
+          <span className="online">● ONLINE</span>
+
+          <button
+            className="sair-btn"
+            onClick={()=>{
+              localStorage.removeItem("emailRadiaScan")
+              setLogado(false)
+              setEmail("")
+              setHistorico([])
+              setResultado(null)
+            }}
+          >
+            Sair
+          </button>
+        </div>
       </header>
 
       <main className="grid">
@@ -210,9 +277,7 @@ function App(){
                 {resultado.status}
               </div>
 
-              <p className="problema">
-                {resultado.problema}
-              </p>
+              <p className="problema">{resultado.problema}</p>
 
               <div className="metricas">
                 <Barra nome="Nitidez" valor={resultado.nitidez} />
@@ -288,6 +353,8 @@ function App(){
               {historico.map((item, index) => (
                 <li key={index}>
                   <strong>{item.nome}</strong>
+                  <br />
+                  E-mail: {item.email}
                   <br />
                   Paciente: {item.paciente}
                   <br />
