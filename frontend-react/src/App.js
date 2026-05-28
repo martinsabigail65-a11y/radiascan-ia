@@ -1,20 +1,28 @@
 import "./App.css"
 import { useState, useEffect } from "react"
 
+const API_URL = "https://name-radiascania-api.onrender.com"
+
 function App(){
 
   const [imagem, setImagem] = useState(null)
   const [preview, setPreview] = useState(null)
   const [resultado, setResultado] = useState(null)
   const [loading, setLoading] = useState(false)
+
   const [modo, setModo] = useState("Humano")
   const [paciente, setPaciente] = useState("")
   const [registro, setRegistro] = useState("")
   const [tipoExame, setTipoExame] = useState("Radiografia")
   const [dataExame, setDataExame] = useState("")
   const [historico, setHistorico] = useState([])
+
   const [email, setEmail] = useState("")
+  const [senha, setSenha] = useState("")
+  const [codigo, setCodigo] = useState("")
   const [logado, setLogado] = useState(false)
+  const [telaAuth, setTelaAuth] = useState("login")
+  const [mensagemAuth, setMensagemAuth] = useState("")
 
   useEffect(() => {
     const emailSalvo = localStorage.getItem("emailRadiaScan")
@@ -31,6 +39,89 @@ function App(){
     }
   }, [])
 
+  async function cadastrar(){
+    setMensagemAuth("Enviando código...")
+
+    const resposta = await fetch(`${API_URL}/registrar`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        email:email,
+        senha:senha
+      })
+    })
+
+    const dados = await resposta.json()
+
+    if(dados.erro){
+      setMensagemAuth(dados.erro)
+      return
+    }
+
+    setMensagemAuth("Código enviado para seu e-mail.")
+    setTelaAuth("confirmar")
+  }
+
+  async function confirmarCodigo(){
+    setMensagemAuth("Confirmando código...")
+
+    const resposta = await fetch(`${API_URL}/confirmar`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        email:email,
+        codigo:codigo
+      })
+    })
+
+    const dados = await resposta.json()
+
+    if(dados.erro){
+      setMensagemAuth(dados.erro)
+      return
+    }
+
+    setMensagemAuth("Conta confirmada. Faça login.")
+    setTelaAuth("login")
+  }
+
+  async function fazerLogin(){
+    setMensagemAuth("Entrando...")
+
+    const resposta = await fetch(`${API_URL}/login`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        email:email,
+        senha:senha
+      })
+    })
+
+    const dados = await resposta.json()
+
+    if(dados.erro){
+      setMensagemAuth(dados.erro)
+      return
+    }
+
+    localStorage.setItem("emailRadiaScan", email)
+    setLogado(true)
+
+    const historicoSalvo = localStorage.getItem(`historicoRadiaScan_${email}`)
+
+    if(historicoSalvo){
+      setHistorico(JSON.parse(historicoSalvo))
+    }else{
+      setHistorico([])
+    }
+  }
+
   async function enviarImagem(){
 
     if(!imagem){
@@ -44,13 +135,10 @@ function App(){
     setLoading(true)
 
     try{
-      const resposta = await fetch(
-        "https://name-radiascania-api.onrender.com/analisar",
-        {
-          method:"POST",
-          body:formData
-        }
-      )
+      const resposta = await fetch(`${API_URL}/analisar`, {
+        method:"POST",
+        body:formData
+      })
 
       const dados = await resposta.json()
       const metricas = dados.metricas || {}
@@ -125,36 +213,94 @@ function App(){
       <div className="container">
         <div className="card login-card">
           <h1>🩻 RadiaScan IA</h1>
-          <p>Entre com seu e-mail para salvar seus exames.</p>
 
-          <input
-            type="email"
-            placeholder="Digite seu e-mail"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-          />
+          {telaAuth === "login" && (
+            <>
+              <h2>Entrar</h2>
+              <p>Acesse sua conta para visualizar seus exames.</p>
 
-          <button
-            onClick={()=>{
-              if(!email){
-                alert("Digite um e-mail")
-                return
-              }
+              <input
+                type="email"
+                placeholder="E-mail"
+                value={email}
+                onChange={(e)=>setEmail(e.target.value)}
+              />
 
-              localStorage.setItem("emailRadiaScan", email)
-              setLogado(true)
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={(e)=>setSenha(e.target.value)}
+              />
 
-              const historicoSalvo = localStorage.getItem(`historicoRadiaScan_${email}`)
+              <button onClick={fazerLogin}>
+                Entrar
+              </button>
 
-              if(historicoSalvo){
-                setHistorico(JSON.parse(historicoSalvo))
-              }else{
-                setHistorico([])
-              }
-            }}
-          >
-            Entrar
-          </button>
+              <button
+                className="sair-btn"
+                onClick={()=>setTelaAuth("cadastro")}
+              >
+                Criar conta
+              </button>
+            </>
+          )}
+
+          {telaAuth === "cadastro" && (
+            <>
+              <h2>Criar conta</h2>
+              <p>Informe seu e-mail e crie uma senha.</p>
+
+              <input
+                type="email"
+                placeholder="E-mail"
+                value={email}
+                onChange={(e)=>setEmail(e.target.value)}
+              />
+
+              <input
+                type="password"
+                placeholder="Crie uma senha"
+                value={senha}
+                onChange={(e)=>setSenha(e.target.value)}
+              />
+
+              <button onClick={cadastrar}>
+                Enviar código por e-mail
+              </button>
+
+              <button
+                className="sair-btn"
+                onClick={()=>setTelaAuth("login")}
+              >
+                Já tenho conta
+              </button>
+            </>
+          )}
+
+          {telaAuth === "confirmar" && (
+            <>
+              <h2>Confirmar código</h2>
+              <p>Digite o código enviado para seu e-mail.</p>
+
+              <input
+                type="text"
+                placeholder="Código de confirmação"
+                value={codigo}
+                onChange={(e)=>setCodigo(e.target.value)}
+              />
+
+              <button onClick={confirmarCodigo}>
+                Confirmar acesso
+              </button>
+            </>
+          )}
+
+          {mensagemAuth && (
+            <p className="mensagem-auth">
+              {mensagemAuth}
+            </p>
+          )}
         </div>
       </div>
     )
@@ -179,6 +325,7 @@ function App(){
               localStorage.removeItem("emailRadiaScan")
               setLogado(false)
               setEmail("")
+              setSenha("")
               setHistorico([])
               setResultado(null)
             }}
