@@ -19,7 +19,6 @@ function App(){
 
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
-  const [codigo, setCodigo] = useState("")
   const [logado, setLogado] = useState(false)
   const [telaAuth, setTelaAuth] = useState("login")
   const [mensagemAuth, setMensagemAuth] = useState("")
@@ -38,9 +37,11 @@ function App(){
       }
     }
   }, [])
+async function cadastrar(){
 
-  async function cadastrar(){
-    setMensagemAuth("Enviando código...")
+  setMensagemAuth("Criando conta...")
+
+  try{
 
     const resposta = await fetch(`${API_URL}/registrar`, {
       method:"POST",
@@ -48,8 +49,8 @@ function App(){
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        email:email,
-        senha:senha
+        email: email,
+        senha: senha
       })
     })
 
@@ -60,35 +61,16 @@ function App(){
       return
     }
 
-    setMensagemAuth("Código enviado para seu e-mail.")
-    setTelaAuth("confirmar")
-  }
-
-  async function confirmarCodigo(){
-    setMensagemAuth("Confirmando código...")
-
-    const resposta = await fetch(`${API_URL}/confirmar`, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({
-        email:email,
-        codigo:codigo
-      })
-    })
-
-    const dados = await resposta.json()
-
-    if(dados.erro){
-      setMensagemAuth(dados.erro)
-      return
-    }
-
-    setMensagemAuth("Conta confirmada. Faça login.")
+    setMensagemAuth("Conta criada com sucesso. Faça login.")
     setTelaAuth("login")
+
+  }catch(erro){
+
+    setMensagemAuth("Erro ao criar conta.")
+
   }
 
+}
   async function fazerLogin(){
     setMensagemAuth("Entrando...")
 
@@ -266,7 +248,7 @@ function App(){
               />
 
               <button onClick={cadastrar}>
-                Enviar código por e-mail
+                Criar conta
               </button>
 
               <button
@@ -278,24 +260,7 @@ function App(){
             </>
           )}
 
-          {telaAuth === "confirmar" && (
-            <>
-              <h2>Confirmar código</h2>
-              <p>Digite o código enviado para seu e-mail.</p>
-
-              <input
-                type="text"
-                placeholder="Código de confirmação"
-                value={codigo}
-                onChange={(e)=>setCodigo(e.target.value)}
-              />
-
-              <button onClick={confirmarCodigo}>
-                Confirmar acesso
-              </button>
-            </>
-          )}
-
+         
           {mensagemAuth && (
             <p className="mensagem-auth">
               {mensagemAuth}
