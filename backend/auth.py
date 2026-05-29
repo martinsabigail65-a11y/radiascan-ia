@@ -51,9 +51,9 @@ def registrar_usuario(email, senha):
     codigo = str(random.randint(100000, 999999))
 
     usuarios[email] = {
-        "senha": pbkdf2_sha256.hash(senha),
-        "confirmado": False
-    }
+    "senha": pbkdf2_sha256.hash(senha),
+    "confirmado": True
+}
 
     codigos = carregar_json(CODES_FILE)
     codigos[email] = codigo
@@ -61,7 +61,7 @@ def registrar_usuario(email, senha):
     salvar_json(USERS_FILE, usuarios)
     salvar_json(CODES_FILE, codigos)
 
-    enviar_codigo_email(email, codigo)
+    # enviar_codigo_email(email, codigo)
 
     return {"mensagem": "Código enviado para o e-mail"}
 

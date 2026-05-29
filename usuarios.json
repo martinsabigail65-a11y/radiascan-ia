@@ -1,6 +1,6 @@
 {
     "seuemail@gmail.com": {
         "senha": "$pbkdf2-sha256$29000$7H1vrRViTOldSwmhVOrdWw$O5MP3Y6rhHiUAW6L3W3lq1kRKKrlOwV8TCR1l42E5wM",
-        "confirmado": false
+        "confirmado": true
     }
 }
